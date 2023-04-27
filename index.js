@@ -16,9 +16,9 @@ let con = mysql.createConnection({
     database: 'restapi'
 });
 
-app.get("/", function(req, res) {   
-    res.send("Hello, world!");
-})
+app.listen(port, function(req, res) {
+    console.log(`listening on port http://localhost:${port}`);
+});
 
 app.post("/users", function(req, res) {
     const password = hash(req.body.password);
@@ -38,6 +38,23 @@ app.post("/users", function(req, res) {
 })
     
 app.get("/users", function(req, res) {
+    let authHeader = req.headers['authorization']
+
+    if (authHeader === undefined) {
+        res.sendStatus(403).send("Du har ingen token")
+    }
+    let token = authHeader.slice(7)
+
+    let decoded
+    try {
+        decoded = jwt.verify(token, jwtSecret)
+    }
+    catch (err) {
+        console.log(err)
+        res.status(401).send("Din token stämmer ej eller gått ut...")
+    }
+
+
     let sql = `SELECT * FROM users`
     
     con.query(sql, function(err, result){
@@ -71,10 +88,14 @@ app.post("/login", (req, res) => {
         con.query(sql, function(err, result){
             if (hash(req.body.password) == password){
                 if (err) throw err;
-                const token = jwt.sign({ userId: req.body.id }, jwtSecret);
+                const token = jwt.sign({ userId: req.body.id, exp: Date.now()/1000 + 40}, jwtSecret);
                 // Generera en JWT-token med användarens ID som payload
-                
-                res.send(token)
+
+                let Response = {
+                    "svar": "Här under är din token du använder för att logga in.",
+                    "Token": token
+                }
+                res.send(Response)
             }
             res.send("Incorrect login credentials")
         })
@@ -82,31 +103,7 @@ app.post("/login", (req, res) => {
     else {
         res.status(422)
     }
-    //     jwt.verify(token, 'my-secret-key')
-        
-    //     let decoded
-    //     try {
-    //         decoded = jwt.verify(token, 'my-secret-key')
-    //     } catch (err) {
-    //         console.log(err) //Logga felet, för felsökning på servern.
-    //         res.status(401).send('Invalid auth token')
-    //     }
-    // }
-    // else {
-    //     return res.status(401).send('Felaktigt användarnamn eller lösenord');
-    // }
-
-    // let authHeader = req.headers['authorization']
-    // if (authHeader === undefined) {
-    // // skicka lämplig HTTP-status om auth-header saknas, en “400 någonting”
-    // }
-    // let token = authHeader.slice(7) // tar bort "BEARER " från headern.
-    // // nu finns den inskickade token i variabeln token
-
-    // // Skicka tillbaka tokenen som svar på inloggningsförsöket
-    // return res.json({ token });
 });
-
 
 app.get("/users/:id", function(req, res) {
     let sql = `SELECT * FROM users WHERE id = '${req.params.id}'`
@@ -131,8 +128,3 @@ app.put("/users/:id", function(req, res) {
         res.json(result);
     })
 })
-
-
-app.listen(port, function(req, res) {
-    console.log(`listening on port http://localhost:${port}`);
-});
