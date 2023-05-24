@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Dokumentation av dethär APIet</h1>
+    <br>
+    <h2>Routs</h2>
+    <ul>
+        <li>POST /login - tar JSON objekt med formatet {"username", "password"} och jämför med databasen för korrekta inloggningsuppgifter som ger inloggad användare möjlighet att lägga till användare och ändra information om användare befintliga</li>
+        <li>🔒 POST /users - skapar en ny användare och accepterar JSON objekt på formatet {"username", "firstname", "lastname", "password"}</li>
+        <li>🔒 GET /users - returnerar alla användare</li>
+        <li>🔒 GET /users/{id} - returnerar en användare med specifikt id</li>
+        <li>🔒 PUT /users/{id} - ändrar en existerande användare med specifikt id och accepterar JSON objekt med formatet {"username", "firstname", "lastname", "password"}</li>
+        
+        <li>🔒 = denna route kräver ett giltigt bearer token i authorization header</li>
+    </ul>
+</body>
+</html>
